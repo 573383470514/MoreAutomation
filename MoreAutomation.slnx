@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="MoreAutomation.App/MoreAutomation.App.csproj" />
+  <Project Path="MoreAutomation.Application/MoreAutomation.Application.csproj" />
+  <Project Path="MoreAutomation.Automation/MoreAutomation.Automation.csproj" />
+  <Project Path="MoreAutomation.Contracts/MoreAutomation.Contracts.csproj" />
+  <Project Path="MoreAutomation.Domain/MoreAutomation.Domain.csproj" />
+  <Project Path="MoreAutomation.Infrastructure/MoreAutomation.Infrastructure.csproj" />
+  <Project Path="MoreAutomation.UI/MoreAutomation.UI.csproj" />
+  <Project Path="MoreAutomation.Vision/MoreAutomation.Vision.csproj" />
+</Solution>
