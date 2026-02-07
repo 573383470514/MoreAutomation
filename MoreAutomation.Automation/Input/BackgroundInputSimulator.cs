@@ -14,7 +14,12 @@ namespace MoreAutomation.Automation.Input
 
         public void SendBackgroundClick(IntPtr handle, int x, int y)
         {
-            IntPtr lParam = (IntPtr)((y << 16) | (x & 0xFFFF));
+            // 保证坐标在 16-bit 范围并按无符号方式打包，避免符号扩展和平台差异
+            uint px = (uint)(x & 0xFFFF);
+            uint py = (uint)(y & 0xFFFF);
+            uint packed = (py << 16) | px;
+            IntPtr lParam = new IntPtr((long)packed);
+
             PostMessage(handle, WM_LBUTTONDOWN, (IntPtr)1, lParam);
             PostMessage(handle, WM_LBUTTONUP, IntPtr.Zero, lParam);
         }

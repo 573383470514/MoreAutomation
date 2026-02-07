@@ -1,0 +1,45 @@
+<Window x:Class="MoreAutomation.UI.Shell.UserAgreementWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="使用须知" Height="520" Width="700" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Closing="Window_Closing">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <TextBlock TextWrapping="Wrap" FontSize="14">
+                📢 项目使用须知与免责声明
+                
+                在使用本软件之前，请您务必花一分钟阅读以下条款。您的下载、安装或使用行为将视为对本声明内容的认可。
+
+                1. 核心立场：完全免费
+                严禁售卖：本软件永久免费！
+                反诈提示：如果您是付费买来的，说明您被骗了。请立即申请退款并举报该商家，不要给倒狗一分钱。
+
+                2. 隐私承诺：本地存储
+                零采集：本软件不上传、不采集、不分析任何用户信息。
+                存储路径：数据存放在本地 文档/NIGHTHAVEN 文件夹下。
+                数据安全：账号信息均经加密处理，数据完全由您掌控。因您自行删除本地文件导致的数据丢失，作者无法找回。
+
+                3. 反馈与维护：随缘修复
+                Bug 反馈：如果您在使用中遇到 Bug，欢迎反馈。
+                能力有限：作者会利用业余时间查看，但受限于个人能力与精力，不保证所有问题都能得到解决，也不保证更新频率。
+                技术支持：本项目不提供义务的技术支持，请参考文档自行探索。
+
+                4. 免责声明：风险自担
+                原样提供：本软件按“原样”提供。作者不对软件的稳定性、兼容性或无误性作任何明示或暗示的保证。
+                后果自负：因使用本软件导致的任何直接或间接损失（如系统故障、数据损坏等），作者概不负责。
+
+                感谢您的理解。希望这套工具能为您提供便利！
+            </TextBlock>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <CheckBox x:Name="AgreeCheck" Content="我已阅读并同意以上条款" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <Button x:Name="BtnCancel" Content="退出" Width="80" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+            <Button x:Name="BtnAccept" Content="同意并继续" Width="120" IsEnabled="False" Click="BtnAccept_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

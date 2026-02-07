@@ -17,7 +17,31 @@ namespace MoreAutomation.App
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // 在启动服务前运行自检，若自检失败则给出提示并退出
+            try
+            {
+                var selfCheck = _host.Services.GetRequiredService<MoreAutomation.Application.Services.StartupSelfCheckService>();
+                selfCheck.RunChecks();
+            }
+            catch (MoreAutomation.Application.Services.StartupValidationException ex)
+            {
+                System.Windows.MessageBox.Show($"启动自检失败: {ex.Message}", "启动失败", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                Shutdown();
+                return;
+            }
+
             await _host.StartAsync();
+
+            // Initialize proxy mappings from repository into in-memory manager
+            try
+            {
+                var proxyMgr = _host.Services.GetService<MoreAutomation.Infrastructure.Platform.ProxyManager>();
+                proxyMgr?.Initialize();
+            }
+            catch
+            {
+                // non-fatal: continue startup even if proxy init fails
+            }
 
             var orchestrator = _host.Services.GetRequiredService<StartupOrchestrator>();
             var step = orchestrator.GetNextStep();
@@ -26,13 +50,47 @@ namespace MoreAutomation.App
             switch (step)
             {
                 case StartupStep.ShowAgreement:
-                    // 弹出协议窗口逻辑 (此处简化，实际应从 DI 获取窗口)
-                    MessageBox.Show("请先同意协议");
-                    break;
-                case StartupStep.EnterMainShell:
+                    var agreement = new MoreAutomation.UI.Shell.UserAgreementWindow();
+                    agreement.Owner = null;
+                    agreement.ShowDialog();
+                    if (!agreement.Accepted)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    // 标记已同意并保存配置
+                    var cfgService = _host.Services.GetRequiredService<MoreAutomation.Infrastructure.Config.JsonConfigService>();
+                    var cfg = cfgService.GetConfig();
+                    cfg.IsAgreed = true;
+                    cfgService.SaveConfigAsync(cfg).GetAwaiter().GetResult();
+
+                    // 重新评估下一步
+                    step = orchestrator.GetNextStep();
+                    goto case StartupStep.ShowPathSelection;
+
+                case StartupStep.ShowPathSelection:
+                    var cfg2 = _host.Services.GetRequiredService<MoreAutomation.Infrastructure.Config.JsonConfigService>().GetConfig();
+                    var pathDlg = new MoreAutomation.UI.Shell.PathSelectionWindow(cfg2.ClientPath);
+                    pathDlg.Owner = null;
+                    pathDlg.ShowDialog();
+                    if (string.IsNullOrWhiteSpace(pathDlg.SelectedPath))
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    cfg2.ClientPath = pathDlg.SelectedPath;
+                    _host.Services.GetRequiredService<MoreAutomation.Infrastructure.Config.JsonConfigService>().SaveConfigAsync(cfg2).GetAwaiter().GetResult();
+
+                    // 进入主壳
                     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                     mainWindow.DataContext = _host.Services.GetRequiredService<MainViewModel>();
                     mainWindow.Show();
+                    break;
+
+                case StartupStep.EnterMainShell:
+                    var mainWindow2 = _host.Services.GetRequiredService<MainWindow>();
+                    mainWindow2.DataContext = _host.Services.GetRequiredService<MainViewModel>();
+                    mainWindow2.Show();
                     break;
             }
 

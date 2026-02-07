@@ -34,14 +34,13 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
                 CREATE TABLE IF NOT EXISTS Accounts (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     SortIndex INTEGER,
-                    AccountNumber INTEGER,
+                    AccountNumber INTEGER NOT NULL UNIQUE,
                     Password TEXT,
                     GroupId INTEGER,
                     Note TEXT,
                     IsMaster INTEGER,
                     ProxyPort INTEGER
-                );
-                CREATE UNIQUE INDEX IF NOT EXISTS IX_Accounts_AccountNumber ON Accounts(AccountNumber);";
+                );";
             command.ExecuteNonQuery();
         }
 
@@ -91,7 +90,36 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
             command.Parameters.AddWithValue("$master", account.IsMaster ? 1 : 0);
             command.Parameters.AddWithValue("$port", account.ProxyPort);
 
-            await command.ExecuteNonQueryAsync();
+            try
+            {
+                await command.ExecuteNonQueryAsync();
+
+                // 将插入后的自增 Id 回写到对象上，便于上层使用
+                try
+                {
+                    using var idCmd = connection.CreateCommand();
+                    idCmd.CommandText = "SELECT last_insert_rowid();";
+                    var scalar = await idCmd.ExecuteScalarAsync();
+                    if (scalar != null && long.TryParse(scalar.ToString(), out long last))
+                    {
+                        account.Id = (int)last;
+                    }
+                }
+                catch
+                {
+                    // 忽略回写失败，插入本身已完成
+                }
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException ex)
+            {
+                // SQLite unique constraint maps to error code 19
+                if (ex.SqliteErrorCode == 19 && ex.Message?.IndexOf("AccountNumber", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    throw new DuplicateAccountException("账号已存在", ex);
+                }
+
+                throw new RepositoryException("数据库写入失败", ex);
+            }
         }
 
         public async Task DeleteAsync(long accountNumber)
@@ -101,7 +129,14 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
             using var command = connection.CreateCommand();
             command.CommandText = "DELETE FROM Accounts WHERE AccountNumber = $acc";
             command.Parameters.AddWithValue("$acc", accountNumber);
-            await command.ExecuteNonQueryAsync();
+            try
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException ex)
+            {
+                throw new RepositoryException("删除账号失败", ex);
+            }
         }
 
         public async Task UpdateAsync(Account account)
@@ -125,7 +160,19 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
             command.Parameters.AddWithValue("$master", account.IsMaster ? 1 : 0);
             command.Parameters.AddWithValue("$port", account.ProxyPort);
 
-            await command.ExecuteNonQueryAsync();
+            try
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException ex)
+            {
+                if (ex.SqliteErrorCode == 19 && ex.Message?.IndexOf("AccountNumber", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    throw new DuplicateAccountException("账号冲突", ex);
+                }
+
+                throw new RepositoryException("数据库更新失败", ex);
+            }
         }
     }
 }

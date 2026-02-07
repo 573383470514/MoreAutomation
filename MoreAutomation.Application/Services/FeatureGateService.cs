@@ -20,6 +20,14 @@ namespace MoreAutomation.Application.Services
             EnsureDefault(FeatureToggleKeys.ActionStartAutomation, true);
             EnsureDefault(FeatureToggleKeys.ActionHideWindow, true);
             EnsureDefault(FeatureToggleKeys.ActionAdaptiveToggle, true);
+            // account actions
+            EnsureDefault(FeatureToggleKeys.ActionAddAccount, true);
+            EnsureDefault(FeatureToggleKeys.ActionDeleteAccount, true);
+            EnsureDefault(FeatureToggleKeys.ActionStopAutomation, true);
+
+            // runtime controls
+            EnsureDefault(FeatureToggleKeys.RuntimeForceStop, true);
+            EnsureDefault(FeatureToggleKeys.RuntimeCircuitBreaker, false);
         }
 
         public bool IsEnabled(string key)

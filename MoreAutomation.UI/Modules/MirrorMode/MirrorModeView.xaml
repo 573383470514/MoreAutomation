@@ -1,0 +1,162 @@
+<UserControl x:Class="MoreAutomation.UI.Modules.MirrorMode.MirrorModeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="#FFFFFF">
+        <TabControl Margin="10">
+            <!-- 角色管理选项卡 -->
+            <TabItem Header="角色管理">
+                <StackPanel Margin="10" VerticalAlignment="Top">
+                    <TextBlock Text="当前角色" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <Border BorderBrush="#DDD" BorderThickness="1" Padding="15" Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="{Binding CurrentRole}" FontSize="16" Foreground="#333" Margin="0,5"/>
+                            <TextBlock Text="客户端ID:" Margin="0,10,0,5" Foreground="#666"/>
+                            <TextBlock Text="{Binding ClientId}" FontSize="12" Foreground="#333" Margin="10,0"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <TextBlock Text="角色切换" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <Button Content="设为主控" Command="{Binding SetMasterCommand}" Padding="12,8" Background="#2196F3" Foreground="White" Margin="0,0,10,0"/>
+                        <Button Content="设为从应" Command="{Binding SetFollowerCommand}" Padding="12,8" Background="#FF9800" Foreground="White"/>
+                    </StackPanel>
+                    
+                    <TextBlock Text="追随管理" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <ListBox ItemsSource="{Binding ConnectedFollowers}" Height="150" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,0,20">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Margin="5"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    
+                    <TextBlock Text="操作日志" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBox Text="{Binding MirrorLog}" Height="120" IsReadOnly="True" TextWrapping="Wrap" 
+                             VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Margin="0,0,0,20"/>
+                    
+                    <Button Content="清空日志" Command="{Binding ClearLogCommand}" Padding="12,8" Width="100"/>
+                </StackPanel>
+            </TabItem>
+            
+            <!-- 坐标采集选项卡 -->
+            <TabItem Header="坐标采集">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- 左侧：采集预览画布 -->
+                    <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="1" Margin="10">
+                        <Canvas x:Name="CaptureCanvas" Background="Black" MouseDown="CaptureCanvas_MouseDown">
+                            <!-- 网格线将在 CodeBehind 中动态绘制 -->
+                        </Canvas>
+                    </Border>
+                    
+                    <!-- 右侧：采集控制面板 -->
+                    <StackPanel Grid.Column="1" Margin="10,10,10,10" VerticalAlignment="Top">
+                        <TextBlock Text="坐标采集" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="操作名称:" Foreground="#666" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding ActionName}" Padding="5" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="操作描述:" Foreground="#666" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding ActionDescription}" Padding="5" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="采集状态:" Foreground="#666" Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding CaptureStatus}" Foreground="#333" Margin="0,0,0,10" Height="30" TextWrapping="Wrap"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="开始采集" Command="{Binding StartCaptureCommand}" Padding="10,8" Background="#4CAF50" Foreground="White" Width="90" Margin="0,0,5,0"/>
+                            <Button Content="结束采集" Command="{Binding EndCaptureCommand}" Padding="10,8" Background="#F44336" Foreground="White" Width="90"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="已采集: {Binding CapturedCount}} 个点" Foreground="#666" Margin="0,0,0,10"/>
+                        
+                        <ListBox ItemsSource="{Binding CapturedCoordinates}" Height="150" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,0,10">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Margin="5"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="保存" Command="{Binding SaveCaptureCommand}" Padding="10,8" Background="#2196F3" Foreground="White" Width="70" Margin="0,0,5,0"/>
+                            <Button Content="清除" Command="{Binding ClearCaptureCommand}" Padding="10,8" Background="#999" Foreground="White" Width="70"/>
+                        </StackPanel>
+                        
+                        <Separator Margin="0,10"/>
+                        <TextBlock Text="已保存的动作" FontSize="12" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <ListBox ItemsSource="{Binding SavedActions}" SelectedItem="{Binding SelectedActionName}" Height="150" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,0,10">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Margin="5"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="加载" Command="{Binding LoadActionCommand}" Padding="10,8" Background="#FF9800" Foreground="White" Width="70" Margin="0,0,5,0"/>
+                            <Button Content="删除" Command="{Binding DeleteActionCommand}" Padding="10,8" Background="#F44336" Foreground="White" Width="70"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            
+            <!-- 后台配置选项卡 -->
+            <TabItem Header="后台配置">
+                <StackPanel Margin="15" VerticalAlignment="Top">
+                    <TextBlock Text="后台自动化配置" FontSize="14" FontWeight="Bold" Margin="0,0,0,15"/>
+                    
+                    <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="0,0,0,15" Background="#FAFAFA">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding ConfigBackgroundMode}" Content="启用后台模式（允许最小化/隐藏窗口运行自动化）" Margin="0,0,0,10" FontSize="12"/>
+                            <TextBlock Text="✓ 启用后台模式后，应用可在最小化或后台状态下执行坐标点击操作" Foreground="#666" FontSize="11" Margin="20,0,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="0,0,0,15" Background="#FAFAFA">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding ConfigUseVirtualDisplay}" Content="使用虚拟显存截图（GPU加速）" Margin="0,0,0,10" FontSize="12"/>
+                            <TextBlock Text="✓ 虚拟显存模式：在后台截图目标窗口（不需要窗口可见）" Foreground="#666" FontSize="11" Margin="20,0,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Text="✗ 普通模式：需要目标窗口可见才能截图" Foreground="#999" FontSize="11" Margin="20,0,0,10" TextWrapping="Wrap"/>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="虚拟屏幕分辨率：" Margin="0,0,10,0" VerticalAlignment="Center" FontSize="12"/>
+                                <TextBox Grid.Column="1" Text="{Binding ConfigDisplayWidth}" Padding="5" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="2" Text=" x " VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="3" Text="{Binding ConfigDisplayHeight}" Padding="5"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="0,0,0,15" Background="#FAFAFA">
+                        <StackPanel>
+                            <TextBlock Text="输入模式（鼠标/键盘操作方式）:" Margin="0,0,0,10" FontSize="12" FontWeight="Bold"/>
+                            <StackPanel Orientation="Horizontal" Margin="20,0,0,10">
+                                <Button Content="🔒 原生模式 (系统低级Hook)" IsEnabled="{Binding IsInputNative}" Padding="10,8" Background="#2196F3" Foreground="White" Margin="0,0,10,0"/>
+                                <Button Content="🔓 模拟模式 (InputSimulator)" IsEnabled="{Binding IsInputSimulated}" Padding="10,8" Background="#4CAF50" Foreground="White"/>
+                            </StackPanel>
+                            <TextBlock Text="💡 原生模式：后台不可见，但某些游戏可能检测；模拟模式：更易被检测但兼容性好" Foreground="#666" FontSize="11" Margin="20,0,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <TextBlock Text="状态说明:" FontSize="12" FontWeight="Bold" Margin="0,20,0,10"/>
+                    <TextBlock Text="• 后台模式 + 虚拟显存 = 完全隐遁：窗口隐藏，使用离屏渲染进行视觉识别和点击" Foreground="#777" FontSize="11" Margin="0,5,0,5"/>
+                    <TextBlock Text="• 仅启用后台模式 = 允许最小化：窗口最小化时纯坐标点击（假最小化）" Foreground="#777" FontSize="11" Margin="0,5,0,5"/>
+                    <TextBlock Text="• 关闭后台模式 = 传统模式：需要窗口可见，点击时窗口激活" Foreground="#777" FontSize="11" Margin="0,5,0,15"/>
+                    
+                    <Button Content="保存配置" Command="{Binding SaveBackgroundConfigCommand}" Padding="12,8" Background="#4CAF50" Foreground="White" Width="100"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

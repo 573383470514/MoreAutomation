@@ -23,8 +23,9 @@ namespace MoreAutomation.Infrastructure.Platform
         public string GetWindowTitle(IntPtr handle)
         {
             StringBuilder sb = new StringBuilder(256);
-            NativeMethods.GetWindowText(handle, sb, sb.Capacity);
-            return sb.ToString();
+            int len = NativeMethods.GetWindowText(handle, sb, sb.Capacity);
+            if (len <= 0) return string.Empty;
+            return sb.ToString(0, len);
         }
     }
 }

@@ -66,5 +66,25 @@ namespace MoreAutomation.Infrastructure.Config
                 _configLock.Release();
             }
         }
+
+        /// <summary>
+        /// 同步保存配置到磁盘（UI 快速持久化）。
+        /// </summary>
+        public void SaveConfig(AppConfig config)
+        {
+            ArgumentNullException.ThrowIfNull(config);
+
+            try
+            {
+                _cache = config;
+                string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_configPath, json);
+            }
+            catch (IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[JsonConfigService] 配置保存失败: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

@@ -13,22 +13,34 @@ namespace MoreAutomation.Vision.Matchers
             if (screenMat == null || screenMat.Empty() || !File.Exists(templatePath))
                 return MatchResult.Fail("输入无效");
 
+            if (screenMat.Width <= 0 || screenMat.Height <= 0)
+                return MatchResult.Fail("screenMat 尺寸无效");
+
             using var template = new Mat(templatePath, ImreadModes.Unchanged);
             if (template.Empty()) return MatchResult.Fail("无法加载模板");
 
             using var result = new Mat();
             // 处理透明通道遮罩 (关键：处理流光干扰)
-            if (template.Channels() == 4)
+            try
             {
-                using var mask = new Mat();
-                Cv2.ExtractChannel(template, mask, 3);
-                using var templateBgr = new Mat();
-                Cv2.CvtColor(template, templateBgr, ColorConversionCodes.BGRA2BGR);
-                Cv2.MatchTemplate(screenMat, templateBgr, result, TemplateMatchModes.CCoeffNormed, mask);
+                if (template.Channels() == 4)
+                {
+                    using var mask = new Mat();
+                    Cv2.ExtractChannel(template, mask, 3);
+                    // 确保 mask 为二值
+                    Cv2.Threshold(mask, mask, 1, 255, ThresholdTypes.Binary);
+                    using var templateBgr = new Mat();
+                    Cv2.CvtColor(template, templateBgr, ColorConversionCodes.BGRA2BGR);
+                    Cv2.MatchTemplate(screenMat, templateBgr, result, TemplateMatchModes.CCoeffNormed, mask);
+                }
+                else
+                {
+                    Cv2.MatchTemplate(screenMat, template, result, TemplateMatchModes.CCoeffNormed);
+                }
             }
-            else
+            catch (System.Exception ex)
             {
-                Cv2.MatchTemplate(screenMat, template, result, TemplateMatchModes.CCoeffNormed);
+                return MatchResult.Fail($"Template matching failed: {ex.Message}");
             }
 
             Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out Point maxLoc);

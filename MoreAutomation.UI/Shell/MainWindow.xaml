@@ -17,22 +17,62 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Column="0" Background="#F3F3F3">
+            <TextBlock Text="模式" Foreground="#666" Margin="5,10,5,5" FontSize="12"/>
+            <TextBlock Text="{Binding CurrentMode}" Foreground="#333" Margin="10,0,5,5" FontSize="11"/>
+            <Button Content="普通模式" Command="{Binding SwitchToNormalModeCommand}" Margin="5,0,5,5" Padding="5,3"/>
+            <Button Content="洗宠模式" Command="{Binding SwitchToWashPetModeCommand}" Margin="5,0,5,5" Padding="5,3"/>
+            <Separator Margin="5,10"/>
+            <TextBlock Text="导航" Foreground="#666" Margin="5,5,5,5" FontSize="12"/>
             <Button Content="账号管理" Command="{Binding NavigateToAccountsCommand}" Margin="5"/>
-            <Button Content="日常任务" Margin="5"/>
-            <Button Content="洗宠模式" Margin="5"/>
+            <Button Content="日常任务" Command="{Binding NavigateToDailyTasksCommand}" Margin="5"/>
+            <Button Content="镜像模式" Command="{Binding NavigateToMirrorModeCommand}" Margin="5"/>
         </StackPanel>
 
         <ContentControl Grid.Column="1" Content="{Binding CurrentView}"/>
 
         <StackPanel Grid.Column="2" Background="#FAFAFA">
-            <TextBlock Text="快捷操作" HorizontalAlignment="Center" Margin="5"/>
-            <Button Content="启动脚本" Command="{Binding StartAutomationCommand}" Style="{StaticResource AccentButtonStyle}"/>
-            <Button Content="隐藏窗口" Command="{Binding HideWindowCommand}"/>
-            <CheckBox Content="自适应开关" Margin="5,10"/>
+            <TextBlock Text="快捷操作" HorizontalAlignment="Center" Margin="5,5,5,0" FontWeight="Bold" FontSize="12"/>
+            <Button Content="无号启动" Width="140" Margin="5"/>
+            <Button Content="重新启动" Width="140" Margin="5"/>
+            <CheckBox Content="自适应分辨率" Margin="5,10" Width="140"/>
+            <Button Content="隐藏窗口" Command="{Binding HideWindowCommand}" Width="140" Margin="5"/>
+            <Button Content="还原窗口" Width="140" Margin="5"/>
+            <CheckBox Content="窗口顶置" Width="140" Margin="5"/>
+            <Button Content="强制暂停自动化" Width="140" Margin="5"/>
+            <Separator Margin="5,10"/>
+            <TextBlock Text="已登录账号" Margin="5,5,5,5" FontWeight="Bold" FontSize="12"/>
+            <ListBox ItemsSource="{Binding LoggedInAccounts}" Height="100" Margin="5" SelectionMode="Single">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource LoggedInAccountMenu}">
+                            <TextBlock Text="{Binding}" Foreground="#333" Margin="0,0,10,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="设为主控" Command="{Binding SetMasterAccountCommand}" CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                        <Separator/>
+                        <MenuItem Header="退出登录" Command="{Binding LogoutAccountCommand}" CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+            </ListBox>
         </StackPanel>
 
         <Border Grid.Row="1" Grid.ColumnSpan="3" BorderBrush="#DDD" BorderThickness="0,1,0,0">
-            <ContentControl Content="{Binding LogConsole}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="120"/>
+                </Grid.ColumnDefinitions>
+                <ScrollViewer Grid.Column="0">
+                    <TextBox Text="{Binding LogConsole}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+                </ScrollViewer>
+                <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Content="保存日志" Command="{Binding SaveLogCommand}" Width="100" Margin="5"/>
+                    <Button Content="清空" Width="100" Margin="5" Command="{Binding ClearLogCommand}"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
