@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using MoreAutomation.Contracts.Configuration;
 
@@ -9,35 +10,61 @@ namespace MoreAutomation.Infrastructure.Config
     public class JsonConfigService
     {
         private readonly string _configPath;
+        private readonly SemaphoreSlim _configLock = new(1, 1);
         private AppConfig _cache;
 
         public JsonConfigService()
         {
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NIGHTHAVEN");
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
             _configPath = Path.Combine(folder, "config.json");
             _cache = new AppConfig();
         }
 
         public AppConfig GetConfig()
         {
-            if (File.Exists(_configPath))
+            if (!File.Exists(_configPath))
             {
-                try
-                {
-                    string json = File.ReadAllText(_configPath);
-                    _cache = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
-                }
-                catch { /* 容错处理：返回默认值 */ }
+                return _cache;
             }
+
+            try
+            {
+                string json = File.ReadAllText(_configPath);
+                _cache = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+            }
+            catch (JsonException)
+            {
+                // 容错处理：配置损坏时保持默认值，避免阻断主流程。
+                _cache = new AppConfig();
+            }
+            catch (IOException)
+            {
+                // 文件读写冲突场景下回退缓存值，保证稳定性。
+            }
+
             return _cache;
         }
 
         public async Task SaveConfigAsync(AppConfig config)
         {
-            _cache = config;
-            string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_configPath, json);
+            ArgumentNullException.ThrowIfNull(config);
+
+            await _configLock.WaitAsync();
+            try
+            {
+                _cache = config;
+                string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_configPath, json);
+            }
+            finally
+            {
+                _configLock.Release();
+            }
         }
     }
 }

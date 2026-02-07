@@ -14,7 +14,7 @@ namespace MoreAutomation.Application.UseCases.AccountManagement
 
         public AccountService(IAccountRepository repository)
         {
-            _repository = repository;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         public async Task<List<Account>> GetAccountsAsync()
@@ -24,6 +24,12 @@ namespace MoreAutomation.Application.UseCases.AccountManagement
 
         public async Task AddAccountAsync(long accNum, string pwd, int groupId, string note)
         {
+            if (string.IsNullOrWhiteSpace(pwd))
+                throw new ArgumentException("账号密码不能为空", nameof(pwd));
+
+            if (groupId < 0)
+                throw new ArgumentOutOfRangeException(nameof(groupId), "分组编号不能小于 0");
+
             var all = await _repository.GetAllAsync();
 
             // 1. 落实 Domain 硬约束：总量上限
@@ -45,7 +51,7 @@ namespace MoreAutomation.Application.UseCases.AccountManagement
             {
                 Password = pwd, // 实际建议在此处调用加密服务
                 GroupId = groupId,
-                Note = note ?? "",
+                Note = note?.Trim() ?? string.Empty,
                 IsMaster = isMaster,
                 SortIndex = all.Count + 1
             };
