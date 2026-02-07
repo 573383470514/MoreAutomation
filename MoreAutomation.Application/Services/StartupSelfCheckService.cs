@@ -18,10 +18,11 @@ namespace MoreAutomation.Application.Services
 
         public void RunChecks()
         {
-            // 检查客户端路径（如果已配置）
+            // 检查客户端路径（如果已配置，只发出警告，不阻断启动）
             if (!string.IsNullOrWhiteSpace(_config.ClientPath) && !Directory.Exists(_config.ClientPath))
             {
-                throw new StartupValidationException($"客户端路径不存在: {_config.ClientPath}");
+                System.Diagnostics.Debug.WriteLine($"⚠ 警告：客户端路径不存在: {_config.ClientPath}，应用仍可启动，但自动化功能可能不可用");
+                // 注意：不再抛出异常，允许应用继续启动
             }
 
             // 检查 tessdata（OCR 所需）
@@ -54,7 +55,8 @@ namespace MoreAutomation.Application.Services
             }
             catch (Exception ex)
             {
-                throw new StartupValidationException("数据目录不可写，请检查权限", ex);
+                // 同样改为警告，不阻断启动
+                System.Diagnostics.Debug.WriteLine($"⚠ 警告：数据目录不可写，请检查权限: {ex.Message}");
             }
         }
     }

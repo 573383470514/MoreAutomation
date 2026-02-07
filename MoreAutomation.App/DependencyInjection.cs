@@ -43,7 +43,9 @@ namespace MoreAutomation.App
 
                     services.AddSingleton<IAutomationEngine, AutomationScheduler>();
                     services.AddSingleton<MoreAutomation.Contracts.Monitoring.IMetricsService, MoreAutomation.Automation.Monitoring.SimpleMetricsService>();
-                    services.AddSingleton<ICoordinateExecutor, CoordinateExecutor>();
+                    services.AddSingleton<ICoordinateExecutor>(sp => new CoordinateExecutor(
+                        sp.GetRequiredService<MoreAutomation.Contracts.Configuration.AppConfig>(),
+                        msg => sp.GetRequiredService<MoreAutomation.Application.Services.ILogService>().Append(msg)));
                     services.AddSingleton<AccountService>(sp => new AccountService(sp.GetRequiredService<IAccountRepository>(), sp.GetRequiredService<ProxyManager>(), sp.GetRequiredService<MoreAutomation.Application.Services.ILogService>()));
                     services.AddSingleton<MoreAutomation.Application.Services.ILogService, MoreAutomation.Application.Services.SimpleLogService>();
                     services.AddSingleton<MoreAutomation.Application.Messaging.IMirrorAgent>(sp => new MoreAutomation.Application.Services.SimpleMirrorAgent(

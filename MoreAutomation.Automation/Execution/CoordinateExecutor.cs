@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using MoreAutomation.Application.Services;
 using MoreAutomation.Automation.Input;
 using MoreAutomation.Contracts.Automation;
 using MoreAutomation.Contracts.Configuration;
@@ -40,12 +39,12 @@ namespace MoreAutomation.Automation.Execution
 
         private readonly BackgroundInputSimulator _inputSimulator;
         private readonly AppConfig _config;
-        private readonly ILogService _log;
+        private readonly Action<string> _logAction;
 
-        public CoordinateExecutor(AppConfig config, ILogService log)
+        public CoordinateExecutor(AppConfig config, Action<string> logAction)
         {
             _config = config;
-            _log = log;
+            _logAction = logAction ?? (msg => System.Diagnostics.Debug.WriteLine(msg));
             _inputSimulator = new BackgroundInputSimulator();
         }
 
@@ -77,12 +76,12 @@ namespace MoreAutomation.Automation.Execution
 
             try
             {
-                _log.Append($"[Execution] 开始执行动作: {action.Name} ({action.Coordinates.Count} 个点)");
+                _logAction($"[Execution] 开始执行动作: {action.Name} ({action.Coordinates.Count} 个点)");
 
                 foreach (var coord in action.Coordinates)
                 {
-                    bool result = await ExecuteCoordinateAsync(coord, hwnd, action.DelayBetweenClicksMs);
-                    if (result)
+                    bool success = await ExecuteCoordinateAsync(coord, hwnd, action.DelayBetweenClicksMs);
+                    if (success)
                         successCount++;
                     else
                         failCount++;
@@ -90,7 +89,7 @@ namespace MoreAutomation.Automation.Execution
 
                 sw.Stop();
 
-                var result = new ExecutionResult
+                var executionResult = new ExecutionResult
                 {
                     Success = failCount == 0,
                     SuccessfulClicks = successCount,
@@ -99,13 +98,13 @@ namespace MoreAutomation.Automation.Execution
                     Message = $"执行完成：成功 {successCount}，失败 {failCount}，耗时 {sw.ElapsedMilliseconds}ms"
                 };
 
-                _log.Append($"[Execution] {result.Message}");
-                return result;
+                _logAction($"[Execution] {executionResult.Message}");
+                return executionResult;
             }
             catch (Exception ex)
             {
                 sw.Stop();
-                _log.Append($"[Execution] 执行异常: {ex.Message}");
+                _logAction($"[Execution] 执行异常: {ex.Message}");
                 return new ExecutionResult
                 {
                     Success = false,
@@ -128,7 +127,7 @@ namespace MoreAutomation.Automation.Execution
                 (int width, int height) = GetWindowSize(targetWindowHandle);
                 if (width <= 0 || height <= 0)
                 {
-                    _log.Append($"[Execution] 窗口尺寸无效: {width}x{height}");
+                    _logAction($"[Execution] 窗口尺寸无效: {width}x{height}");
                     return false;
                 }
 
@@ -139,12 +138,12 @@ namespace MoreAutomation.Automation.Execution
                 // 后台点击（使用 PostMessage，无需窗口激活）
                 _inputSimulator.SendBackgroundClick(targetWindowHandle, pixelX, pixelY);
                 
-                _log.Append($"[Execution] 点击: ({coordinate.XPercent:P1}, {coordinate.YPercent:P1}) -> 像素 ({pixelX}, {pixelY})");
+                _logAction($"[Execution] 点击: ({coordinate.XPercent:P1}, {coordinate.YPercent:P1}) -> 像素 ({pixelX}, {pixelY})");
                 return true;
             }
             catch (Exception ex)
             {
-                _log.Append($"[Execution] 点击失败: {ex.Message}");
+                _logAction($"[Execution] 点击失败: {ex.Message}");
                 return false;
             }
         }

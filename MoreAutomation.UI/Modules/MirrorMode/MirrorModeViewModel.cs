@@ -87,7 +87,7 @@ namespace MoreAutomation.UI.Modules.MirrorMode
         [ObservableProperty]
         private string _executionStatus = "就绪";
 
-        private CancellationTokenSource _executionCts;
+        private CancellationTokenSource? _executionCts;
 
         private ObservableCollection<ProportionalCoordinate> _currentCoordinateList = new();
 
