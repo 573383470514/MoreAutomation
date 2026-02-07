@@ -19,7 +19,7 @@ namespace MoreAutomation.Application.Orchestration
             if (!_config.IsAgreed) return StartupStep.ShowAgreement;
 
             // 2) 检查客户端路径
-            if (string.IsNullOrEmpty(_config.ClientPath) || !Directory.Exists(_config.ClientPath))
+            if (string.IsNullOrWhiteSpace(_config.ClientPath) || !Directory.Exists(_config.ClientPath))
                 return StartupStep.ShowPathSelection;
 
             // 3) 进入主模式
