@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MoreAutomation.Application\MoreAutomation.Application.csproj" />
+    <ProjectReference Include="..\MoreAutomation.Contracts\MoreAutomation.Contracts.csproj" />
     <ProjectReference Include="..\MoreAutomation.UI\MoreAutomation.UI.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="MoreAutomation.UI.Modules.AccountManagement.AccountListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="刷新" Command="{Binding LoadAccountsCommand}" Width="80"/>
+            <Button Content="添加账号" Margin="10,0,0,0" Width="80"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Accounts}" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="序号" Binding="{Binding SortIndex}" Width="50"/>
+                <DataGridTextColumn Header="账号" Binding="{Binding AccountNumber}" Width="120"/>
+                <DataGridTextColumn Header="组号" Binding="{Binding GroupId}" Width="80"/>
+                <DataGridCheckBoxColumn Header="主控" Binding="{Binding IsMaster}" Width="50"/>
+                <DataGridTextColumn Header="备注" Binding="{Binding Note}" Width="*"/>
+                <DataGridTemplateColumn Header="操作" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="删除" Command="{Binding DataContext.DeleteAccountCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                    CommandParameter="{Binding}" Background="Transparent" Foreground="Red" BorderThickness="0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

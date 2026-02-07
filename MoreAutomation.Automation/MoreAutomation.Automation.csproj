@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MoreAutomation.Contracts\MoreAutomation.Contracts.csproj" />
     <ProjectReference Include="..\MoreAutomation.Domain\MoreAutomation.Domain.csproj" />
+    <ProjectReference Include="..\MoreAutomation.Infrastructure\MoreAutomation.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

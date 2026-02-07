@@ -12,7 +12,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MoreAutomation.Application\MoreAutomation.Application.csproj" />
     <ProjectReference Include="..\MoreAutomation.Contracts\MoreAutomation.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Modules\Developer\" />
+    <Folder Include="Common\" />
+    <Folder Include="Components\" />
+    <Folder Include="Styles\" />
   </ItemGroup>
 
 </Project>

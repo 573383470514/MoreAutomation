@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Events\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MoreAutomation.Domain\MoreAutomation.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
