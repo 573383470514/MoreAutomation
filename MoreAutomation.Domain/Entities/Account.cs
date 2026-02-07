@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using MoreAutomation.Domain.Rules;
 
 namespace MoreAutomation.Domain.Entities
 {
@@ -13,14 +14,31 @@ namespace MoreAutomation.Domain.Entities
             get => _accountNumber;
             set
             {
-                if (value < 55555 || value > 999999999)
-                    throw new ArgumentException("账号必须在 55555 ~ 999999999 之间");
+                if (value < AccountValidationRules.MinAccountValue || value > AccountValidationRules.MaxAccountValue)
+                {
+                    throw new ArgumentException($"账号必须在 {AccountValidationRules.MinAccountValue} ~ {AccountValidationRules.MaxAccountValue} 之间");
+                }
+
                 _accountNumber = value;
             }
         }
 
+        private int _groupId = AccountValidationRules.MinGroupId;
+        public int GroupId
+        {
+            get => _groupId;
+            set
+            {
+                if (value < AccountValidationRules.MinGroupId || value > AccountValidationRules.MaxGroupId)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(GroupId), $"组号必须在 {AccountValidationRules.MinGroupId} ~ {AccountValidationRules.MaxGroupId} 之间");
+                }
+
+                _groupId = value;
+            }
+        }
+
         public string Password { get; set; } = string.Empty;
-        public int GroupId { get; set; }
         public string Note { get; set; } = string.Empty;
         public bool IsMaster { get; set; }
         public int ProxyPort { get; set; }
