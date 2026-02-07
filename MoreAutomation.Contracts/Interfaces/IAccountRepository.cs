@@ -1,7 +1,6 @@
-﻿using MoreAutomation.Domain.Entities;
 using System.Collections.Generic;
-using System.Security.Principal;
 using System.Threading.Tasks;
+using MoreAutomation.Domain.Entities;
 
 namespace MoreAutomation.Contracts.Interfaces
 {

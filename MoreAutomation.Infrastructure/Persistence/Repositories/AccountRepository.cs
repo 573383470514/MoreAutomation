@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,17 +10,18 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
 {
     public class AccountRepository : IAccountRepository
     {
-        private readonly string _dbPath;
         private readonly string _connectionString;
 
         public AccountRepository()
         {
-            // 保持原有路径：文档/NIGHTHAVEN/data.db
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NIGHTHAVEN");
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
 
-            _dbPath = Path.Combine(folder, "data.db");
-            _connectionString = $"Data Source={_dbPath}";
+            string dbPath = Path.Combine(folder, "data.db");
+            _connectionString = $"Data Source={dbPath}";
             InitializeDatabase();
         }
 
@@ -28,7 +29,7 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Accounts (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +40,8 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
                     Note TEXT,
                     IsMaster INTEGER,
                     ProxyPort INTEGER
-                );";
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS IX_Accounts_AccountNumber ON Accounts(AccountNumber);";
             command.ExecuteNonQuery();
         }
 
@@ -48,33 +50,35 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
             var list = new List<Account>();
             using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = "SELECT * FROM Accounts ORDER BY SortIndex ASC";
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                // 注意：利用 Domain 层的构造函数，确保加载时也符合规则
                 var account = new Account(reader.GetInt64(2))
                 {
                     Id = reader.GetInt32(0),
                     SortIndex = reader.GetInt32(1),
-                    Password = reader.GetString(3),
+                    Password = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
                     GroupId = reader.GetInt32(4),
-                    Note = reader.GetString(5),
-                    IsMaster = reader.GetBoolean(6),
-                    ProxyPort = reader.GetInt32(7)
+                    Note = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                    IsMaster = reader.GetInt32(6) == 1,
+                    ProxyPort = reader.IsDBNull(7) ? 0 : reader.GetInt32(7)
                 };
                 list.Add(account);
             }
+
             return list;
         }
 
         public async Task AddAsync(Account account)
         {
+            ArgumentNullException.ThrowIfNull(account);
+
             using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = @"
                 INSERT INTO Accounts (SortIndex, AccountNumber, Password, GroupId, Note, IsMaster, ProxyPort)
                 VALUES ($index, $acc, $pwd, $grp, $note, $master, $port)";
@@ -94,7 +98,7 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
         {
             using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = "DELETE FROM Accounts WHERE AccountNumber = $acc";
             command.Parameters.AddWithValue("$acc", accountNumber);
             await command.ExecuteNonQueryAsync();
@@ -102,12 +106,14 @@ namespace MoreAutomation.Infrastructure.Persistence.Repositories
 
         public async Task UpdateAsync(Account account)
         {
+            ArgumentNullException.ThrowIfNull(account);
+
             using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = @"
-                UPDATE Accounts SET 
-                SortIndex = $index, Password = $pwd, GroupId = $grp, 
+                UPDATE Accounts SET
+                SortIndex = $index, Password = $pwd, GroupId = $grp,
                 Note = $note, IsMaster = $master, ProxyPort = $port
                 WHERE AccountNumber = $acc";
 
