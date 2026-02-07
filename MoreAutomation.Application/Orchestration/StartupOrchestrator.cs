@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using MoreAutomation.Contracts.Configuration;
 
@@ -10,20 +11,43 @@ namespace MoreAutomation.Application.Orchestration
 
         public StartupOrchestrator(AppConfig config)
         {
-            _config = config;
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public StartupStep GetNextStep()
         {
-            // 1) 检查协议
-            if (!_config.IsAgreed) return StartupStep.ShowAgreement;
+            if (!_config.IsAgreed)
+            {
+                return StartupStep.ShowAgreement;
+            }
 
-            // 2) 检查客户端路径
             if (string.IsNullOrWhiteSpace(_config.ClientPath) || !Directory.Exists(_config.ClientPath))
+            {
                 return StartupStep.ShowPathSelection;
+            }
 
-            // 3) 进入主模式
             return StartupStep.EnterMainShell;
+        }
+
+        public IReadOnlyList<StartupStep> BuildStartupPlan()
+        {
+            var plan = new List<StartupStep>();
+            var step = GetNextStep();
+
+            if (step == StartupStep.ShowAgreement)
+            {
+                plan.Add(StartupStep.ShowAgreement);
+                return plan;
+            }
+
+            if (step == StartupStep.ShowPathSelection)
+            {
+                plan.Add(StartupStep.ShowPathSelection);
+                return plan;
+            }
+
+            plan.Add(StartupStep.EnterMainShell);
+            return plan;
         }
     }
 
